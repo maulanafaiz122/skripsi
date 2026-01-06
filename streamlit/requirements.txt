@@ -1,0 +1,8 @@
+streamlit
+pandas
+numpy
+scikit-learn
+scikit-multilearn
+gensim
+tensorflow
+openpyxl

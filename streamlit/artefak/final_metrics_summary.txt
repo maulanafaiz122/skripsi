@@ -1,0 +1,11 @@
+
+HASIL EVALUASI MULTI-LABEL AKHIR
+=============================================
+W2V Best Dimension : 100
+Best LSTM Params   : {'batch_size': 32, 'optimizer': 'rmsprop', 'learning_rate': 0.01}
+Hamming Loss       : 0.0163
+Ranking Loss       : 0.0327
+Micro Precision    : 0.9837
+Micro Recall       : 1.0000
+Micro F1-Score     : 0.9918
+=============================================
