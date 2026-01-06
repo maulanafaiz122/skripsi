@@ -2,24 +2,20 @@ import streamlit as st
 import importlib.util
 import os
 
-# ================================
 # KONFIGURASI HALAMAN
-# ================================
 st.set_page_config(
     page_title="Aplikasi Skripsi",
     layout="wide"
 )
 
-# ================================
 # SIDEBAR NAVIGASI
-# ================================
 st.sidebar.title("📂 Navigasi Halaman")
 
 page = st.sidebar.radio(
     "Pilih Halaman:",
     (
-        "🔍 Prediksi Sentimen",
-        "📊 Hasil Penelitian"
+        "Prediksi Sentimen",
+        "Hasil Penelitian"
     )
 )
 
@@ -34,8 +30,9 @@ def load_page(file_name):
 # ================================
 # ROUTING
 # ================================
-if page == "🔍 Prediksi Sentimen":
+if page == "Prediksi Sentimen":
     load_page("pages/app_prediksi.py")
 
-elif page == "📊 Hasil Penelitian":
+elif page == "Hasil Penelitian":
     load_page("pages/hasil_penelitian.py")
+
