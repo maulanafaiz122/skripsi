@@ -29,19 +29,18 @@ MAX_LEN = 60 # Sesuai dengan panjang padding saat training
 # --- FUNGSI UTAMA LOAD ARTEFAK ---
 @st.cache_resource
 def load_artifacts():
-    try:
-        model = load_model(MODEL_PATH)
-        with open(LE_POWERSET_PATH, 'rb') as f:
-            le_powerset = pickle.load(f)
-        with open(WORD_TO_INDEX_PATH, 'rb') as f:
-            word_to_index = pickle.load(f)
-        df_keterangan = pd.read_excel(KETERANGAN_KELAS_PATH)
-        return model, le_powerset, word_to_index, df_keterangan
-    except FileNotFoundError as e:
-        st.error(f"Gagal memuat artefak model/encoder: {e}. Pastikan Anda telah menjalankan 'training_data_prep.py' dan menempatkan hasilnya di folder '{ARTIFACT_DIR}'.")
-        return None, None, None, None
+    model = load_model(MODEL_PATH, compile=False)  # PENTING
+    with open(LE_POWERSET_PATH, 'rb') as f:
+        le_powerset = pickle.load(f)
+    with open(WORD_TO_INDEX_PATH, 'rb') as f:
+        word_to_index = pickle.load(f)
+    df_keterangan = pd.read_excel(KETERANGAN_KELAS_PATH)
+    return model, le_powerset, word_to_index, df_keterangan
 
-model, le_powerset, word_to_index, df_keterangan = load_artifacts()
+model = None
+le_powerset = None
+word_to_index = None
+df_keterangan = None
 
 # --- FUNGSI PREPROCESSING DAN PREDIKSI ---
 def preprocess_and_predict(text, word_to_index, model, le_powerset, df_keterangan, max_len):
@@ -100,7 +99,10 @@ def preprocess_and_predict(text, word_to_index, model, le_powerset, df_keteranga
     return result
 
 # --- INTERFACE STREAMLIT ---
-
+st.set_page_config(
+    page_title="Prediksi Sentimen Multi-Label W2V-LSTM",
+    layout="wide"
+)
 st.set_page_config(page_title="Prediksi Sentimen Multi-Label W2V-LSTM")
 st.title(" Analisis Sentimen Multi-Label BBM Pertamina (Word2Vec + LSTM)")
 st.markdown("Aplikasi ini memprediksi kelas sentimen Powerset (15 kelas) dari ulasan pelanggan berdasarkan 4 aspek utama: Kualitas, Ketidaksesuaian, Kesalahan Pengisian, dan Kepercayaan.")
@@ -111,16 +113,24 @@ input_text = st.text_area("Masukkan Ulasan Pelanggan (Sudah Distemming, jika bis
 if st.button("Prediksi Sentimen"):
     if not input_text:
         st.warning("Mohon masukkan teks ulasan untuk diprediksi.")
-    elif model is None:
-        st.error("Sistem prediksi tidak dapat berjalan karena model belum termuat. Mohon cek log error.")
-    else:
-        with st.spinner("Memproses prediksi..."):
-            prediction_result = preprocess_and_predict(input_text, word_to_index, model, le_powerset, df_keterangan, MAX_LEN)
-            
-            if "error" in prediction_result:
-                 st.error(prediction_result["error"])
-            else:
-                st.success(" Prediksi Selesai!")
+        st.stop()
+
+    with st.spinner("Memuat model & memproses prediksi..."):
+        if model is None:
+            try:
+                model, le_powerset, word_to_index, df_keterangan = load_artifacts()
+            except Exception as e:
+                st.error(f"Gagal memuat model: {e}")
+                st.stop()
+
+        prediction_result = preprocess_and_predict(
+            input_text,
+            word_to_index,
+            model,
+            le_powerset,
+            df_keterangan,
+            MAX_LEN
+        )
                 
                 # Menampilkan Hasil Utama
                 st.subheader(" Hasil Prediksi Utama")
@@ -145,3 +155,4 @@ if st.button("Prediksi Sentimen"):
 st.subheader(" Keterangan 15 Kelas Powerset")
 if df_keterangan is not None:
     st.dataframe(df_keterangan, height=400, hide_index=True)
+
